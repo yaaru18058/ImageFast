@@ -188,3 +188,30 @@ h1.header-switch-item {
     color: gray;
     margin-top: 40px;
 }
+@media (max-width: 768px) {
+    .main-header {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .header-top {
+        position: static;
+        width: auto;
+        height: auto;
+        margin-bottom: 0;
+    }
+
+    .header-switch-item {
+        position: static;
+        transform: none;
+    }
+
+    .brand-logo-center {
+        position: static;
+        transform: none;
+        text-align: right;
+        justify-self: end;
+    }
+}
