@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuickImages Catalog</title>
+    <style>
+        :root {
+            --bg-color: #121212;
+            --card-bg: #1e1e1e;
+            --text-color: #ffffff;
+            --text-gray: #aaaaaa;
+            --chip-bg: #2a2a2a;
+            --accent: #ffffff;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            padding: 16px;
+        }
+
+        header {
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            margin-bottom: 12px;
+        }
+
+        /* Фильтры ориентации */
+        .filters {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            overflow-x: auto;
+            padding-bottom: 4px;
+        }
+
+        .chip {
+            background-color: var(--chip-bg);
+            color: var(--text-color);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            white-space: nowrap;
+            transition: background 0.2s, color 0.2s;
+        }
+
+        .chip.active {
+            background-color: var(--accent);
+            color: #000000;
+            font-weight: 500;
+        }
+
+        /* Сетка категорий и картинок */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 16px;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+            height: 180px;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            transition: transform 0.2s;
+        }
+
+        .card:hover {
+            transform: translateY(-4px);
+        }
+
+        .card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .card-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            top: 0;
+            background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.1) 60%);
+            display: flex;
+            align-items: flex-end;
+            padding: 16px;
+        }
+
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-color);
+        }
+
+        /* Кнопка назад */
+        .back-btn {
+            background: rgba(255, 255, 255, 0.8);
+            border: none;
+            border-radius: 50%;
+            width: 48px;
+            height: 48px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 16px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #000;
+        }
+
+        .back-btn:hover {
+            background: #ffffff;
+        }
+
+        /* Модальное окно просмотра конкретной картинки */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.95);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+        }
+
+        .error {
+            color: #ff6b6b;
+            text-align: center;
+            margin-top: 40px;
+        }
+
+        .loading {
+            text-align: center;
+            color: var(--text-gray);
+            margin-top: 40px;
+        }
+    </style>
+</head>
+<body>
+
+    <header id="header-container">
+        <h1>Каталог обоев</h1>
+        <div class="filters">
+            <button class="chip active" onclick="setOrientation(null)">Все</button>
+            <button class="chip" onclick="setOrientation('portrait')">Вертикальные</button>
+            <button class="chip" onclick="setOrientation('landscape')">Альбомные</button>
+        </div>
+    </header>
+
+    <main>
+        <div id="loader" class="loading">Загрузка каталога...</div>
+        <div id="app-grid" class="grid"></div>
+    </main>
+
+    <!-- Полноэкранный просмотр изображения -->
+    <div id="imageModal" class="modal">
+        <button class="back-btn modal-close" onclick="closeImage()">←</button>
+        <img id="modalImg" src="" alt="Wallpaper">
+    </div>
+
+    <script>
+        const BASE_DOMAIN = "https://yaaru18058.github.io/QuickImagesCatalog/";
+        
+        const categoryNameMap = {
+            "nature": "Природа",
+            "anime": "Аниме",
+            "cyberpunk": "Киберпанк",
+            "minimalist": "Минимализм",
+            "space": "Космос",
+            "cars": "Автомобили",
+            "cityscape": "Городской пейзаж",
+            "dark": "Темные",
+            "fantasy": "Фэнтези",
+            "abstract": "Абстракция",
+            "gaming": "Игры",
+            "mountains": "Горы",
+            "ocean": "Океан",
+            "animals": "Животные",
+            "architecture": "Архитектура",
+            "retro": "Ретро",
+            "sci-fi": "Научная фантастика",
+            "sunset": "Закат",
+            "neon": "Неон",
+            "pixel art": "Пиксель-арт",
+            "imported": "Популярные"
+        };
+
+        let allWallpapers = [];
+        let currentOrientation = null;
+        let selectedCategory = null;
+
+        async function init() {
+            try {
+                const response = await fetch(BASE_DOMAIN + "catalog.json");
+                if (!response.ok) throw new Error("Ошибка загрузки сети");
+                allWallpapers = await response.json();
+                
+                document.getElementById('loader').style.display = 'none';
+                renderCategories();
+            } catch (e) {
+                console.error(e);
+                document.getElementById('loader').innerHTML = '<div class="error">Не удалось загрузить каталог. Проверьте соединение.</div>';
+            }
+        }
+
+        function setOrientation(orientation) {
+            currentOrientation = orientation;
+            
+            // Обновляем активные чипсы
+            document.querySelectorAll('.filters .chip').forEach(btn => {
+                btn.classList.remove('active');
+                if ((orientation === null && btn.textContent === 'Все') ||
+                    (orientation === 'portrait' && btn.textContent === 'Вертикальные') ||
+                    (orientation === 'landscape' && btn.textContent === 'Альбомные')) {
+                    btn.classList.add('active');
+                }
+            });
+
+            if (selectedCategory) {
+                renderWallpapers(selectedCategory);
+            } else {
+                renderCategories();
+            }
+        }
+
+        function renderCategories() {
+            selectedCategory = null;
+            document.getElementById('header-container').style.display = 'block';
+            
+            // Получаем уникальные категории из данных
+            const uniqueQueries = [...new Set(allWallpapers.map(item => item.category).filter(Boolean))];
+            
+            const grid = document.getElementById('app-grid');
+            grid.innerHTML = '';
+
+            uniqueQueries.forEach(catQuery => {
+                const title = categoryNameMap[catQuery.toLowerCase()] || 
+                    (catQuery.charAt(0).toUpperCase() + catQuery.slice(1));
+
+                // Ищем элемент для превью (как в Kotlin-приложении)
+                const found = allWallpapers.find(item => 
+                    item.category && item.category.toLowerCase() === catQuery.toLowerCase() &&
+                    (currentOrientation === null || (item.orientation && item.orientation.toLowerCase() === currentOrientation.toLowerCase()))
+                ) || allWallpapers.find(item => item.category && item.category.toLowerCase() === catQuery.toLowerCase());
+
+                const pathForPreview = (found && found.thumb_path) ? found.thumb_path : (found ? found.path : '');
+                const previewUrl = pathForPreview ? BASE_DOMAIN + pathForPreview : '';
+
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.onclick = () => selectCategory(catQuery);
+                card.innerHTML = `
+                    <img src="${previewUrl}" alt="${title}" loading="lazy">
+                    <div class="card-overlay">
+                        <div class="card-title">${title}</div>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function selectCategory(categoryQuery) {
+            selectedCategory = categoryQuery;
+            document.getElementById('header-container').style.display = 'none';
+            renderWallpapers(categoryQuery);
+        }
+
+        function renderWallpapers(categoryQuery) {
+            const grid = document.getElementById('app-grid');
+            grid.innerHTML = '';
+
+            // Кнопка возврата назад
+            const backContainer = document.createElement('div');
+            backContainer.style.gridColumn = "1 / -1";
+            backContainer.innerHTML = `<button class="back-btn" onclick="renderCategories()">←</button>`;
+            grid.appendChild(backContainer);
+
+            const filtered = allWallpapers.filter(item => {
+                const matchesCategory = item.category && item.category.toLowerCase() === categoryQuery.toLowerCase();
+                const matchesOrientation = currentOrientation === null || (item.orientation && item.orientation.toLowerCase() === currentOrientation.toLowerCase());
+                return matchesCategory && matchesOrientation;
+            });
+
+            if (filtered.length === 0) {
+                const emptyMsg = document.createElement('div');
+                emptyMsg.style.gridColumn = "1 / -1";
+                emptyMsg.style.textAlign = "center";
+                emptyMsg.style.color = "var(--text-gray)";
+                emptyMsg.style.marginTop = "40px";
+                emptyMsg.textContent = "В этой категории пока нет картинок";
+                grid.appendChild(emptyMsg);
+                return;
+            }
+
+            filtered.forEach(wallpaper => {
+                const pathToUse = wallpaper.thumb_path ? wallpaper.thumb_path : wallpaper.path;
+                const imageUrl = BASE_DOMAIN + pathToUse;
+                const originalUrl = BASE_DOMAIN + wallpaper.path;
+
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.onclick = () => openImage(originalUrl);
+                card.innerHTML = `
+                    <img src="${imageUrl}" alt="Wallpaper" loading="lazy">
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function openImage(url) {
+            const modal = document.getElementById('imageModal');
+            const modalImg = document.getElementById('modalImg');
+            modalImg.src = url;
+            modal.style.display = 'flex';
+        }
+
+        function closeImage() {
+            const modal = document.getElementById('imageModal');
+            modal.style.display = 'none';
+            document.getElementById('modalImg').src = '';
+        }
+
+        // Запуск при загрузке страницы
+        init();
+    </script>
+</body>
+</html>
