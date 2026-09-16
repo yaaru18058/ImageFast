@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>QuickImages Catalog</title>
+    <!-- Подключаем выразительный шрифт для логотипа -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
     <style>
         :root {
             --bg-color: #121212;
@@ -25,22 +27,63 @@
             background-color: var(--bg-color);
             color: var(--text-color);
             padding: 16px;
+            scroll-behavior: smooth;
         }
 
-        header {
-            margin-bottom: 20px;
+        /* Шапка каталога */
+        .main-header {
+            position: relative;
+            background-color: var(--bg-color);
+            z-index: 50;
+            padding-bottom: 12px;
+            margin-bottom: 16px;
         }
 
-        h1 {
-            font-size: 1.5rem;
+        /* Фиксированный контейнер для левой части шапки */
+        .header-top {
+            position: relative;
+            display: flex;
+            align-items: center;
             margin-bottom: 12px;
+            height: 40px;
+            width: 140px; 
+            flex-shrink: 0;
+        }
+
+        /* Общий класс для элементов, сменяющих друг друга слева */
+        .header-switch-item {
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            white-space: nowrap;
+        }
+
+        h1.header-switch-item {
+            font-size: 1.5rem;
+            margin: 0;
+        }
+
+        /* Строго центрированный логотип */
+        .brand-logo-center {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            font-family: 'Playfair Display', Georgia, serif;
+            font-size: 1.8rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            background: linear-gradient(135deg, #ffffff 0%, #777777 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            pointer-events: none;
         }
 
         /* Фильтры ориентации */
         .filters {
             display: flex;
             gap: 8px;
-            margin-bottom: 20px;
             overflow-x: auto;
             padding-bottom: 4px;
         }
@@ -54,13 +97,26 @@
             cursor: pointer;
             font-size: 0.9rem;
             white-space: nowrap;
-            transition: background 0.2s, color 0.2s;
+            transition: background 0.2s ease, color 0.2s ease;
         }
 
         .chip.active {
             background-color: var(--accent);
             color: #000000;
             font-weight: 500;
+        }
+
+        .view-container {
+            opacity: 1;
+            transition: opacity 0.2s ease;
+        }
+
+        .view-container.fade-out {
+            opacity: 0;
+        }
+
+        .hidden-view {
+            display: none !important;
         }
 
         /* Сетка категорий и картинок */
@@ -78,17 +134,19 @@
             height: 180px;
             cursor: pointer;
             box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-            transition: transform 0.2s;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
 
         .card:hover {
             transform: translateY(-4px);
+            box-shadow: 0 8px 15px rgba(0,0,0,0.4);
         }
 
         .card img {
             width: 100%;
             height: 100%;
             object-fit: cover;
+            transition: opacity 0.3s ease;
         }
 
         .card-overlay {
@@ -113,24 +171,29 @@
         .back-btn {
             background: rgba(255, 255, 255, 0.8);
             border: none;
-            border-radius: 50%;
-            width: 48px;
-            height: 48px;
+            border-radius: 20px;
             cursor: pointer;
-            display: flex;
+            display: inline-flex;
             align-items: center;
-            justify-content: center;
-            margin-bottom: 16px;
-            font-size: 1.2rem;
-            font-weight: bold;
+            gap: 6px;
+            margin-bottom: 0;
+            padding: 10px 16px;
+            font-size: 0.95rem;
+            font-weight: 500;
             color: #000;
+            transition: background 0.2s ease;
         }
 
         .back-btn:hover {
             background: #ffffff;
         }
 
-        /* Модальное окно просмотра конкретной картинки */
+        .header-switch-item.back-btn:hover {
+            background: #ffffff;
+            transform: translateY(-50%);
+        }
+
+        /* Модальное окно просмотра */
         .modal {
             display: none;
             position: fixed;
@@ -142,18 +205,98 @@
             justify-content: center;
             align-items: center;
             z-index: 1000;
+            padding: 20px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal.active {
+            opacity: 1;
         }
 
         .modal img {
             max-width: 100%;
             max-height: 100%;
             object-fit: contain;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+
+        .modal img.loaded {
+            opacity: 1;
         }
 
         .modal-close {
             position: absolute;
-            top: 20px;
-            left: 20px;
+            top: 16px;
+            left: 16px;
+            z-index: 1010;
+        }
+
+        .modal-close.back-btn:hover {
+            transform: none;
+        }
+
+        .modal-loader {
+            position: absolute;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 14px;
+            color: var(--text-gray);
+            font-size: 0.95rem;
+            z-index: 1005;
+            transition: opacity 0.3s ease;
+        }
+
+        .spinner {
+            width: 44px;
+            height: 44px;
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            border-top: 4px solid #ffffff;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .modal-nav {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: row;
+            gap: 12px;
+            z-index: 1010;
+        }
+
+        .nav-circle-btn {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.8);
+            border: none;
+            color: #000;
+            font-size: 1.25rem;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+            padding: 0;
+            transition: background 0.2s ease, transform 0.2s ease;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+        }
+
+        .nav-circle-btn:hover {
+            background: #ffffff;
+            transform: scale(1.08);
         }
 
         .error {
@@ -171,9 +314,14 @@
 </head>
 <body>
 
-    <header id="header-container">
-        <h1>Каталог обоев</h1>
-        <div class="filters">
+    <header class="main-header">
+        <div class="header-top">
+            <h1 id="header-title" class="header-switch-item">Каталог обоев</h1>
+            <button id="header-back-btn" class="back-btn header-switch-item hidden-view" onclick="switchView('categories')">← Назад</button>
+        </div>
+        <div class="brand-logo-center">ImageFast</div>
+        
+        <div class="filters" id="filters-container">
             <button class="chip active" onclick="setOrientation(null)">Все</button>
             <button class="chip" onclick="setOrientation('portrait')">Вертикальные</button>
             <button class="chip" onclick="setOrientation('landscape')">Альбомные</button>
@@ -182,13 +330,30 @@
 
     <main>
         <div id="loader" class="loading">Загрузка каталога...</div>
-        <div id="app-grid" class="grid"></div>
+
+        <div id="categories-view" class="view-container">
+            <div id="categories-grid" class="grid"></div>
+        </div>
+
+        <div id="wallpapers-view" class="view-container hidden-view">
+            <div id="wallpapers-grid" class="grid"></div>
+        </div>
     </main>
 
-    <!-- Полноэкранный просмотр изображения -->
     <div id="imageModal" class="modal">
-        <button class="back-btn modal-close" onclick="closeImage()">←</button>
-        <img id="modalImg" src="" alt="Wallpaper">
+        <button class="back-btn modal-close" onclick="closeImage()">← Назад</button>
+        
+        <div id="modalLoader" class="modal-loader">
+            <div class="spinner"></div>
+            <div>Загрузка изображения</div>
+        </div>
+
+        <img id="modalImg" src="" alt="Wallpaper" onload="onImageLoaded()">
+        
+        <div class="modal-nav">
+            <button class="nav-circle-btn" onclick="prevImage()" title="Предыдущая">←</button>
+            <button class="nav-circle-btn" onclick="nextImage()" title="Следующая">→</button>
+        </div>
     </div>
 
     <script>
@@ -221,6 +386,10 @@
         let allWallpapers = [];
         let currentOrientation = null;
         let selectedCategory = null;
+        let savedScrollPosition = 0;
+
+        let currentFilteredList = [];
+        let currentIndex = 0;
 
         async function init() {
             try {
@@ -239,7 +408,6 @@
         function setOrientation(orientation) {
             currentOrientation = orientation;
             
-            // Обновляем активные чипсы
             document.querySelectorAll('.filters .chip').forEach(btn => {
                 btn.classList.remove('active');
                 if ((orientation === null && btn.textContent === 'Все') ||
@@ -250,27 +418,72 @@
             });
 
             if (selectedCategory) {
-                renderWallpapers(selectedCategory);
+                renderWallpapersContent(selectedCategory);
             } else {
-                renderCategories();
+                renderCategoriesContent();
             }
+        }
+
+        function switchView(targetView) {
+            const catView = document.getElementById('categories-view');
+            const wallView = document.getElementById('wallpapers-view');
+
+            const activeView = (targetView === 'wallpapers') ? catView : wallView;
+            activeView.classList.add('fade-out');
+
+            if (targetView === 'wallpapers') {
+                savedScrollPosition = window.scrollY;
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+
+            setTimeout(() => {
+                if (targetView === 'categories') {
+                    selectedCategory = null;
+                    
+                    document.getElementById('header-title').classList.remove('hidden-view');
+                    document.getElementById('header-back-btn').classList.add('hidden-view');
+                    document.getElementById('filters-container').style.display = 'flex';
+
+                    catView.classList.remove('hidden-view');
+                    wallView.classList.add('hidden-view');
+                    renderCategoriesContent();
+
+                    window.scrollTo(0, savedScrollPosition);
+                } else {
+                    document.getElementById('header-title').classList.add('hidden-view');
+                    document.getElementById('header-back-btn').classList.remove('hidden-view');
+                    document.getElementById('filters-container').style.display = 'none';
+
+                    catView.classList.add('hidden-view');
+                    wallView.classList.remove('hidden-view');
+                    renderWallpapersContent(selectedCategory);
+                }
+
+                catView.classList.remove('fade-out');
+                wallView.classList.remove('fade-out');
+            }, 200);
         }
 
         function renderCategories() {
             selectedCategory = null;
-            document.getElementById('header-container').style.display = 'block';
-            
-            // Получаем уникальные категории из данных
+            document.getElementById('header-title').classList.remove('hidden-view');
+            document.getElementById('header-back-btn').classList.add('hidden-view');
+            document.getElementById('filters-container').style.display = 'flex';
+
+            document.getElementById('categories-view').classList.remove('hidden-view');
+            document.getElementById('wallpapers-view').classList.add('hidden-view');
+            renderCategoriesContent();
+        }
+
+        function renderCategoriesContent() {
             const uniqueQueries = [...new Set(allWallpapers.map(item => item.category).filter(Boolean))];
-            
-            const grid = document.getElementById('app-grid');
+            const grid = document.getElementById('categories-grid');
             grid.innerHTML = '';
 
             uniqueQueries.forEach(catQuery => {
                 const title = categoryNameMap[catQuery.toLowerCase()] || 
                     (catQuery.charAt(0).toUpperCase() + catQuery.slice(1));
 
-                // Ищем элемент для превью (как в Kotlin-приложении)
                 const found = allWallpapers.find(item => 
                     item.category && item.category.toLowerCase() === catQuery.toLowerCase() &&
                     (currentOrientation === null || (item.orientation && item.orientation.toLowerCase() === currentOrientation.toLowerCase()))
@@ -294,27 +507,20 @@
 
         function selectCategory(categoryQuery) {
             selectedCategory = categoryQuery;
-            document.getElementById('header-container').style.display = 'none';
-            renderWallpapers(categoryQuery);
+            switchView('wallpapers');
         }
 
-        function renderWallpapers(categoryQuery) {
-            const grid = document.getElementById('app-grid');
+        function renderWallpapersContent(categoryQuery) {
+            const grid = document.getElementById('wallpapers-grid');
             grid.innerHTML = '';
 
-            // Кнопка возврата назад
-            const backContainer = document.createElement('div');
-            backContainer.style.gridColumn = "1 / -1";
-            backContainer.innerHTML = `<button class="back-btn" onclick="renderCategories()">←</button>`;
-            grid.appendChild(backContainer);
-
-            const filtered = allWallpapers.filter(item => {
+            currentFilteredList = allWallpapers.filter(item => {
                 const matchesCategory = item.category && item.category.toLowerCase() === categoryQuery.toLowerCase();
                 const matchesOrientation = currentOrientation === null || (item.orientation && item.orientation.toLowerCase() === currentOrientation.toLowerCase());
                 return matchesCategory && matchesOrientation;
             });
 
-            if (filtered.length === 0) {
+            if (currentFilteredList.length === 0) {
                 const emptyMsg = document.createElement('div');
                 emptyMsg.style.gridColumn = "1 / -1";
                 emptyMsg.style.textAlign = "center";
@@ -325,14 +531,13 @@
                 return;
             }
 
-            filtered.forEach(wallpaper => {
+            currentFilteredList.forEach((wallpaper, index) => {
                 const pathToUse = wallpaper.thumb_path ? wallpaper.thumb_path : wallpaper.path;
                 const imageUrl = BASE_DOMAIN + pathToUse;
-                const originalUrl = BASE_DOMAIN + wallpaper.path;
 
                 const card = document.createElement('div');
                 card.className = 'card';
-                card.onclick = () => openImage(originalUrl);
+                card.onclick = () => openImageByIndex(index);
                 card.innerHTML = `
                     <img src="${imageUrl}" alt="Wallpaper" loading="lazy">
                 `;
@@ -340,20 +545,76 @@
             });
         }
 
-        function openImage(url) {
+        function openImageByIndex(index) {
+            currentIndex = index;
+            
             const modal = document.getElementById('imageModal');
             const modalImg = document.getElementById('modalImg');
-            modalImg.src = url;
+            const modalLoader = document.getElementById('modalLoader');
+
             modal.style.display = 'flex';
+            setTimeout(() => modal.classList.add('active'), 10);
+
+            modalImg.classList.remove('loaded');
+            modalLoader.style.opacity = '1';
+            modalLoader.style.display = 'flex';
+            modalImg.src = '';
+
+            updateModalImage();
+        }
+
+        function updateModalImage() {
+            if (currentFilteredList.length === 0) return;
+            
+            const modalImg = document.getElementById('modalImg');
+            const modalLoader = document.getElementById('modalLoader');
+            
+            modalImg.classList.remove('loaded');
+            modalLoader.style.opacity = '1';
+            modalLoader.style.display = 'flex';
+
+            const wallpaper = currentFilteredList[currentIndex];
+            const originalUrl = BASE_DOMAIN + wallpaper.path;
+            modalImg.src = originalUrl;
+        }
+
+        function onImageLoaded() {
+            const modalLoader = document.getElementById('modalLoader');
+            const modalImg = document.getElementById('modalImg');
+            
+            modalLoader.style.opacity = '0';
+            setTimeout(() => {
+                if (modalLoader.style.opacity === '0') {
+                    modalLoader.style.display = 'none';
+                }
+            }, 300);
+
+            modalImg.classList.add('loaded');
+        }
+
+        function nextImage() {
+            if (currentFilteredList.length === 0) return;
+            currentIndex = (currentIndex + 1) % currentFilteredList.length;
+            updateModalImage();
+        }
+
+        function prevImage() {
+            if (currentFilteredList.length === 0) return;
+            currentIndex = (currentIndex - 1 + currentFilteredList.length) % currentFilteredList.length;
+            updateModalImage();
         }
 
         function closeImage() {
             const modal = document.getElementById('imageModal');
-            modal.style.display = 'none';
-            document.getElementById('modalImg').src = '';
+            modal.classList.remove('active');
+            
+            setTimeout(() => {
+                modal.style.display = 'none';
+                document.getElementById('modalImg').src = '';
+                document.getElementById('modalImg').classList.remove('loaded');
+            }, 300);
         }
 
-        // Запуск при загрузке страницы
         init();
     </script>
 </body>
