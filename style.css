@@ -1,217 +1,315 @@
-body {
-    background-color: #121212;
-    color: #ffffff;
-    font-family: Roboto, sans-serif;
-    margin: 0;
-    padding: 16px;
-    box-sizing: border-box;
-}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuickImages Catalog</title>
+    <!-- Подключаем выразительный шрифт для логотипа -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style_2.css">
+</head>
+<body>
 
-/* Общая шапка для всех экранов с относительным позиционированием */
-.main-header {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    margin-bottom: 20px;
-}
+    <header class="main-header">
+        <div class="brand-logo-center">ImageFast</div>
+        <div class="header-top">
+            <h1 id="header-title" class="header-switch-item">Каталог обоев</h1>
+            <button id="header-back-btn" class="back-btn header-switch-item hidden-view" onclick="switchView('categories')">← Назад</button>
+        </div>
+        
+        <div class="filters-header" id="filters-container">
+            <button class="chip active" onclick="setOrientation(null)">Все</button>
+            <button class="chip" onclick="setOrientation('portrait')">Вертикальные</button>
+            <button class="chip" onclick="setOrientation('landscape')">Альбомные</button>
+        </div>
+    </header>
 
-/* Фиксированный контейнер для левой части шапки (заголовок / кнопка назад) */
-.header-top {
-    position: relative;
-    display: flex;
-    align-items: center;
-    margin-bottom: 12px;
-    height: 40px;
-    width: 140px; 
-    flex-shrink: 0;
-}
+    <main>
+        <div id="loader" class="loading">Загрузка каталога...</div>
 
-/* Общий класс для элементов, сменяющих друг друга слева (идеальное наложение) */
-.header-switch-item {
-    position: absolute;
-    left: 0;
-    top: 50%;
-    transform: translateY(-50%);
-    white-space: nowrap;
-}
+        <div id="categories-view" class="view-container">
+            <div id="categories-grid" class="grid"></div>
+        </div>
 
-h1.header-switch-item {
-    font-size: 1.5rem;
-    margin: 0;
-}
+        <div id="wallpapers-view" class="view-container hidden-view">
+            <div id="wallpapers-grid" class="grid"></div>
+        </div>
+    </main>
 
-/* Строго центрированный логотип поверх шапки */
-.brand-logo-center {
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
-    font-family: 'Playfair Display', Georgia, serif;
-    font-size: 1.8rem;
-    font-weight: 700;
-    letter-spacing: 1px;
-    background: linear-gradient(135deg, #ffffff 0%, #777777 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    pointer-events: none;
-}
+    <div id="imageModal" class="modal">
+        <button class="back-btn modal-close" onclick="closeImage()">← Назад</button>
+        
+        <div id="modalLoader" class="modal-loader">
+            <div class="spinner"></div>
+            <div>Загрузка изображения</div>
+        </div>
 
-.filters-header {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 16px;
-    overflow-x: auto;
-}
-.chip {
-    background-color: #2a2a2a;
-    color: #ffffff;
-    border: none;
-    padding: 8px 16px;
-    border-radius: 18px;
-    cursor: pointer;
-    font-size: 14px;
-    white-space: nowrap;
-}
-.chip.active {
-    background-color: #ffffff;
-    color: #000000;
-}
-.grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 16px;
-}
-.categories-grid, .wallpapers-grid {
-    padding-bottom: 24px;
-}
-.card {
-    height: 180px;
-    border-radius: 12px;
-    overflow: hidden;
-    position: relative;
-    cursor: pointer;
-    background-color: #1e1e1e;
-}
-.card-img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-.card-overlay {
-    position: absolute;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.4);
-}
-.card h2 {
-    position: absolute;
-    bottom: 8px;
-    left: 16px;
-    margin: 0;
-    font-size: 20px;
-    color: #fff;
-}
+        <img id="modalImg" src="" alt="Wallpaper" onload="onImageLoaded()">
+        
+        <div class="modal-nav">
+            <button class="nav-circle-btn" onclick="prevImage()" title="Предыдущая">←</button>
+            <button class="nav-circle-btn" onclick="nextImage()" title="Следующая">→</button>
+        </div>
+    </div>
 
-/* Базовые стили кнопки назад */
-.back-btn {
-    background: rgba(255, 255, 255, 0.8);
-    border: none;
-    color: #000;
-    padding: 10px 16px;
-    border-radius: 20px;
-    cursor: pointer;
-    font-weight: 500;
-    font-size: 0.95rem;
-    margin-bottom: 0;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    transition: background 0.2s ease;
-}
+    <script>
+        const BASE_DOMAIN = "https://yaaru18058.github.io/QuickImagesCatalog/";
+        
+        const categoryNameMap = {
+            "nature": "Природа",
+            "anime": "Аниме",
+            "cyberpunk": "Киберпанк",
+            "minimalist": "Минимализм",
+            "space": "Космос",
+            "cars": "Автомобили",
+            "cityscape": "Городской пейзаж",
+            "dark": "Темные",
+            "fantasy": "Фэнтези",
+            "abstract": "Абстракция",
+            "gaming": "Игры",
+            "mountains": "Горы",
+            "ocean": "Океан",
+            "animals": "Животные",
+            "architecture": "Архитектура",
+            "retro": "Ретро",
+            "sci-fi": "Научная фантастика",
+            "sunset": "Закат",
+            "neon": "Неон",
+            "pixel art": "Пиксель-арт",
+            "imported": "Популярные"
+        };
 
-.back-btn:hover {
-    background: #ffffff;
-}
+        let allWallpapers = [];
+        let currentOrientation = null;
+        let selectedCategory = null;
+        let savedScrollPosition = 0;
 
-/* Фиксация центровки для кнопки назад в шапке */
-.header-switch-item.back-btn:hover {
-    background: #ffffff;
-    transform: translateY(-50%);
-}
+        let currentFilteredList = [];
+        let currentIndex = 0;
 
-.fullscreen-viewer {
-    position: fixed;
-    inset: 0;
-    background: #000;
-    display: flex;
-    flex-direction: column;
-    padding: 16px;
-    box-sizing: border-box;
-    z-index: 100;
-}
-.fullscreen-viewer .back-btn {
-    align-self: flex-start;
-}
-.image-container {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-.fullscreen-img {
-    max-width: 100%;
-    max-height: 100%;
-    object-fit: contain;
-}
-.loader-container {
-    display: flex;
-    justify-content: center;
-    margin-top: 50px;
-}
-.spinner {
-    width: 40px;
-    height: 40px;
-    border: 4px solid #fff;
-    border-top-color: transparent;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-}
-@keyframes spin {
-    to { transform: rotate(360deg); }
-}
-.error-banner {
-    color: #ff5555;
-    text-align: center;
-    margin-top: 20px;
-}
-.empty-msg {
-    text-align: center;
-    color: gray;
-    margin-top: 40px;
-}
-@media (max-width: 768px) {
-    .main-header {
-        display: grid;
-        grid-template-columns: auto 1fr;
-        align-items: center;
-        gap: 8px;
-    }
+        async function init() {
+            try {
+                const response = await fetch(BASE_DOMAIN + "catalog.json");
+                if (!response.ok) throw new Error("Ошибка загрузки сети");
+                allWallpapers = await response.json();
+                
+                document.getElementById('loader').style.display = 'none';
+                renderCategories();
+            } catch (e) {
+                console.error(e);
+                document.getElementById('loader').innerHTML = '<div class="error">Не удалось загрузить каталог. Проверьте соединение.</div>';
+            }
+        }
 
-    .header-top {
-        position: static;
-        width: auto;
-        height: auto;
-        margin-bottom: 0;
-    }
+        function setOrientation(orientation) {
+            currentOrientation = orientation;
+            
+            document.querySelectorAll('.filters-header .chip').forEach(btn => {
+                btn.classList.remove('active');
+                if ((orientation === null && btn.textContent === 'Все') ||
+                    (orientation === 'portrait' && btn.textContent === 'Вертикальные') ||
+                    (orientation === 'landscape' && btn.textContent === 'Альбомные')) {
+                    btn.classList.add('active');
+                }
+            });
 
-    .header-switch-item {
-        position: static;
-        transform: none;
-    }
+            if (selectedCategory) {
+                renderWallpapersContent(selectedCategory);
+            } else {
+                renderCategoriesContent();
+            }
+        }
 
-    .brand-logo-center {
-        position: static;
-        transform: none;
-        text-align: right;
-        justify-self: end;
-    }
-}
+        function switchView(targetView) {
+            const catView = document.getElementById('categories-view');
+            const wallView = document.getElementById('wallpapers-view');
+
+            const activeView = (targetView === 'wallpapers') ? catView : wallView;
+            activeView.classList.add('fade-out');
+
+            if (targetView === 'wallpapers') {
+                savedScrollPosition = window.scrollY;
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+
+            setTimeout(() => {
+                if (targetView === 'categories') {
+                    selectedCategory = null;
+                    
+                    document.getElementById('header-title').classList.remove('hidden-view');
+                    document.getElementById('header-back-btn').classList.add('hidden-view');
+                    document.getElementById('filters-container').style.display = 'flex';
+
+                    catView.classList.remove('hidden-view');
+                    wallView.classList.add('hidden-view');
+                    renderCategoriesContent();
+
+                    window.scrollTo(0, savedScrollPosition);
+                } else {
+                    document.getElementById('header-title').classList.add('hidden-view');
+                    document.getElementById('header-back-btn').classList.remove('hidden-view');
+                    document.getElementById('filters-container').style.display = 'none';
+
+                    catView.classList.add('hidden-view');
+                    wallView.classList.remove('hidden-view');
+                    renderWallpapersContent(selectedCategory);
+                }
+
+                catView.classList.remove('fade-out');
+                wallView.classList.remove('fade-out');
+            }, 200);
+        }
+
+        function renderCategories() {
+            selectedCategory = null;
+            document.getElementById('header-title').classList.remove('hidden-view');
+            document.getElementById('header-back-btn').classList.add('hidden-view');
+            document.getElementById('filters-container').style.display = 'flex';
+
+            document.getElementById('categories-view').classList.remove('hidden-view');
+            document.getElementById('wallpapers-view').classList.add('hidden-view');
+            renderCategoriesContent();
+        }
+
+        function renderCategoriesContent() {
+            const uniqueQueries = [...new Set(allWallpapers.map(item => item.category).filter(Boolean))];
+            const grid = document.getElementById('categories-grid');
+            grid.innerHTML = '';
+
+            uniqueQueries.forEach(catQuery => {
+                const title = categoryNameMap[catQuery.toLowerCase()] || 
+                    (catQuery.charAt(0).toUpperCase() + catQuery.slice(1));
+
+                const found = allWallpapers.find(item => 
+                    item.category && item.category.toLowerCase() === catQuery.toLowerCase() &&
+                    (currentOrientation === null || (item.orientation && item.orientation.toLowerCase() === currentOrientation.toLowerCase()))
+                ) || allWallpapers.find(item => item.category && item.category.toLowerCase() === catQuery.toLowerCase());
+
+                const pathForPreview = (found && found.thumb_path) ? found.thumb_path : (found ? found.path : '');
+                const previewUrl = pathForPreview ? BASE_DOMAIN + pathForPreview : '';
+
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.onclick = () => selectCategory(catQuery);
+                card.innerHTML = `
+                    <img class="card-img" src="${previewUrl}" alt="${title}" loading="lazy">
+                    <div class="card-overlay">
+                        <h2>${title}</h2>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function selectCategory(categoryQuery) {
+            selectedCategory = categoryQuery;
+            switchView('wallpapers');
+        }
+
+        function renderWallpapersContent(categoryQuery) {
+            const grid = document.getElementById('wallpapers-grid');
+            grid.innerHTML = '';
+
+            currentFilteredList = allWallpapers.filter(item => {
+                const matchesCategory = item.category && item.category.toLowerCase() === categoryQuery.toLowerCase();
+                const matchesOrientation = currentOrientation === null || (item.orientation && item.orientation.toLowerCase() === currentOrientation.toLowerCase());
+                return matchesCategory && matchesOrientation;
+            });
+
+            if (currentFilteredList.length === 0) {
+                const emptyMsg = document.createElement('div');
+                emptyMsg.className = "empty-msg";
+                emptyMsg.style.gridColumn = "1 / -1";
+                emptyMsg.textContent = "В этой категории пока нет картинок";
+                grid.appendChild(emptyMsg);
+                return;
+            }
+
+            currentFilteredList.forEach((wallpaper, index) => {
+                const pathToUse = wallpaper.thumb_path ? wallpaper.thumb_path : wallpaper.path;
+                const imageUrl = BASE_DOMAIN + pathToUse;
+
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.onclick = () => openImageByIndex(index);
+                card.innerHTML = `
+                    <img class="card-img" src="${imageUrl}" alt="Wallpaper" loading="lazy">
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function openImageByIndex(index) {
+            currentIndex = index;
+            
+            const modal = document.getElementById('imageModal');
+            const modalImg = document.getElementById('modalImg');
+            const modalLoader = document.getElementById('modalLoader');
+
+            modal.style.display = 'flex';
+            setTimeout(() => modal.classList.add('active'), 10);
+
+            modalImg.classList.remove('loaded');
+            modalLoader.style.opacity = '1';
+            modalLoader.style.display = 'flex';
+            modalImg.src = '';
+
+            updateModalImage();
+        }
+
+        function updateModalImage() {
+            if (currentFilteredList.length === 0) return;
+            
+            const modalImg = document.getElementById('modalImg');
+            const modalLoader = document.getElementById('modalLoader');
+            
+            modalImg.classList.remove('loaded');
+            modalLoader.style.opacity = '1';
+            modalLoader.style.display = 'flex';
+
+            const wallpaper = currentFilteredList[currentIndex];
+            const originalUrl = BASE_DOMAIN + wallpaper.path;
+            modalImg.src = originalUrl;
+        }
+
+        function onImageLoaded() {
+            const modalLoader = document.getElementById('modalLoader');
+            const modalImg = document.getElementById('modalImg');
+            
+            modalLoader.style.opacity = '0';
+            setTimeout(() => {
+                if (modalLoader.style.opacity === '0') {
+                    modalLoader.style.display = 'none';
+                }
+            }, 300);
+
+            modalImg.classList.add('loaded');
+        }
+
+        function nextImage() {
+            if (currentFilteredList.length === 0) return;
+            currentIndex = (currentIndex + 1) % currentFilteredList.length;
+            updateModalImage();
+        }
+
+        function prevImage() {
+            if (currentFilteredList.length === 0) return;
+            currentIndex = (currentIndex - 1 + currentFilteredList.length) % currentFilteredList.length;
+            updateModalImage();
+        }
+
+        function closeImage() {
+            const modal = document.getElementById('imageModal');
+            modal.classList.remove('active');
+            
+            setTimeout(() => {
+                modal.style.display = 'none';
+                document.getElementById('modalImg').src = '';
+                document.getElementById('modalImg').classList.remove('loaded');
+            }, 300);
+        }
+
+        init();
+    </script>
+</body>
+</html>
