@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QuickImages Catalog</title>
+    <title>ImageFast</title>
+    <link rel="icon" type="image/png" href="ImageFast_logo.png">
     <!-- Подключаем выразительный шрифт для логотипа -->
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
     <!-- Подключаем файл стилей -->
@@ -46,10 +47,11 @@
         
         <div id="modalLoader" class="modal-loader">
             <div class="spinner"></div>
-            <div>Загрузка изображения</div>
+            <div>Загрузка оригинала</div>
         </div>
 
-        <img id="modalImg" src="" alt="Wallpaper" onload="onImageLoaded()">
+        <!-- Главное изображение сразу принимает эскиз, а по onload подгружает оригинал -->
+        <img id="modalImg" src="" alt="Wallpaper">
         
         <div class="modal-nav">
             <button class="nav-circle-btn" onclick="prevImage()" title="Предыдущая">←</button>
@@ -190,7 +192,7 @@
                     (currentOrientation === null || (item.orientation && item.orientation.toLowerCase() === currentOrientation.toLowerCase()))
                 ) || allWallpapers.find(item => item.category && item.category.toLowerCase() === catQuery.toLowerCase());
 
-                const pathForPreview = (found && found.thumb_path) ? found.thumb_path : (found ? found.path : '');
+                const pathForPreview = found ? (found.thumb_path || found.path) : '';
                 const previewUrl = pathForPreview ? BASE_DOMAIN + pathForPreview : '';
 
                 const card = document.createElement('div');
@@ -233,7 +235,7 @@
             }
 
             currentFilteredList.forEach((wallpaper, index) => {
-                const pathToUse = wallpaper.thumb_path ? wallpaper.thumb_path : wallpaper.path;
+                const pathToUse = wallpaper.thumb_path || wallpaper.path;
                 const imageUrl = BASE_DOMAIN + pathToUse;
 
                 const card = document.createElement('div');
@@ -250,16 +252,8 @@
             currentIndex = index;
             
             const modal = document.getElementById('imageModal');
-            const modalImg = document.getElementById('modalImg');
-            const modalLoader = document.getElementById('modalLoader');
-
             modal.style.display = 'flex';
             setTimeout(() => modal.classList.add('active'), 10);
-
-            modalImg.classList.remove('loaded');
-            modalLoader.style.opacity = '1';
-            modalLoader.style.display = 'flex';
-            modalImg.src = '';
 
             updateModalImage();
         }
@@ -275,22 +269,28 @@
             modalLoader.style.display = 'flex';
 
             const wallpaper = currentFilteredList[currentIndex];
-            const originalUrl = BASE_DOMAIN + wallpaper.path;
-            modalImg.src = originalUrl;
-        }
-
-        function onImageLoaded() {
-            const modalLoader = document.getElementById('modalLoader');
-            const modalImg = document.getElementById('modalImg');
             
-            modalLoader.style.opacity = '0';
-            setTimeout(() => {
-                if (modalLoader.style.opacity === '0') {
-                    modalLoader.style.display = 'none';
-                }
-            }, 300);
+            // 1. Мгновенно показываем эскиз в качестве основы в модалке
+            const thumbToUse = wallpaper.thumb_path || wallpaper.path;
+            if (thumbToUse) {
+                modalImg.src = BASE_DOMAIN + thumbToUse;
+            }
 
-            modalImg.classList.add('loaded');
+            // 2. Фоном начинаем загружать оригинальное изображение
+            const originalUrl = BASE_DOMAIN + wallpaper.path;
+            const fullImg = new Image();
+            fullImg.src = originalUrl;
+            fullImg.onload = () => {
+                // Когда оригинал скачался, подменяем источник у основного тега img
+                modalImg.src = originalUrl;
+                modalImg.classList.add('loaded');
+                modalLoader.style.opacity = '0';
+                setTimeout(() => {
+                    if (modalLoader.style.opacity === '0') {
+                        modalLoader.style.display = 'none';
+                    }
+                }, 300);
+            };
         }
 
         function nextImage() {
