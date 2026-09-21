@@ -5,21 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ImageFast</title>
 
-    
-<!-- Yandex.Metrika counter -->
-<script type="text/javascript">
-    (function(m,e,t,r,i,k,a){
-        m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
-        m[i].l=1*new Date();
-        for (var j = 0; j < document.scripts.length; j++) {if (document.scripts[j].src === r) { return; }}
-        k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)
-    })(window, document,'script','https://mc.yandex.ru/metrika/tag.js?id=112737054', 'ym');
-
-    ym(112737054, 'init', {ssr:true, webvisor:true, clickmap:true, ecommerce:"dataLayer", referrer: document.referrer, url: location.href, accurateTrackBounce:true, trackLinks:true});
-</script>
-<noscript><div><img src="https://mc.yandex.ru/watch/112737054" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
-<!-- /Yandex.Metrika counter -->
-
+    <!-- Yandex.Metrika counter -->
+    <script src="yandex.js" async></script>
+    <noscript><div><img src="https://mc.yandex.ru/watch/112737054" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
+    <!-- /Yandex.Metrika counter -->
 
     <link rel="icon" type="image/png" href="ImageFast_logo.png">
     <!-- Подключаем выразительный шрифт для логотипа -->
@@ -111,6 +100,36 @@
         let currentFilteredList = [];
         let currentIndex = 0;
 
+        // --- ФУНКЦИЯ РАНДОМА, ПРИВЯЗАННАЯ КО ДНЮ НЕДЕЛИ ---
+        function getDayOfWeekSeed() {
+            const now = new Date();
+            const year = now.getFullYear();
+            const startOfYear = new Date(year, 0, 1);
+            const weekNumber = Math.ceil((((now - startOfYear) / 86400000) + startOfYear.getDay() + 1) / 7);
+            const dayOfWeek = now.getDay();
+            return year * 1000 + weekNumber * 10 + dayOfWeek;
+        }
+
+        function createSeededRandom(seed) {
+            let s = seed % 2147483647;
+            if (s <= 0) s += 2147483646;
+            return function() {
+                s = (s * 16807) % 2147483647;
+                return (s - 1) / 2147483646;
+            };
+        }
+
+        function seededShuffle(array, seed) {
+            const arr = [...array];
+            const rnd = createSeededRandom(seed);
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(rnd() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr;
+        }
+        // ----------------------------------------------------
+
         async function init() {
             try {
                 const response = await fetch(BASE_DOMAIN + "catalog.json");
@@ -196,7 +215,11 @@
         }
 
         function renderCategoriesContent() {
+            const seed = getDayOfWeekSeed();
+            
+            // Получаем уникальные категории БЕЗ перемешивания (порядок неизменен)
             const uniqueQueries = [...new Set(allWallpapers.map(item => item.category).filter(Boolean))];
+
             const grid = document.getElementById('categories-grid');
             grid.innerHTML = '';
 
@@ -204,10 +227,16 @@
                 const title = categoryNameMap[catQuery.toLowerCase()] || 
                     (catQuery.charAt(0).toUpperCase() + catQuery.slice(1));
 
-                const found = allWallpapers.find(item => 
+                const matchingItems = allWallpapers.filter(item => 
                     item.category && item.category.toLowerCase() === catQuery.toLowerCase() &&
                     (currentOrientation === null || (item.orientation && item.orientation.toLowerCase() === currentOrientation.toLowerCase()))
-                ) || allWallpapers.find(item => item.category && item.category.toLowerCase() === catQuery.toLowerCase());
+                );
+
+                const listToPick = matchingItems.length > 0 ? matchingItems : allWallpapers.filter(item => item.category && item.category.toLowerCase() === catQuery.toLowerCase());
+                
+                // Перемешиваем картинки внутри категории на основе дня недели, чтобы обложка менялась
+                const shuffledItems = seededShuffle(listToPick, seed + catQuery.length);
+                const found = shuffledItems[0];
 
                 const pathForPreview = found ? (found.thumb_path || found.path) : '';
                 const previewUrl = pathForPreview ? BASE_DOMAIN + pathForPreview : '';
@@ -234,11 +263,15 @@
             const grid = document.getElementById('wallpapers-grid');
             grid.innerHTML = '';
 
-            currentFilteredList = allWallpapers.filter(item => {
+            const filtered = allWallpapers.filter(item => {
                 const matchesCategory = item.category && item.category.toLowerCase() === categoryQuery.toLowerCase();
                 const matchesOrientation = currentOrientation === null || (item.orientation && item.orientation.toLowerCase() === currentOrientation.toLowerCase());
                 return matchesCategory && matchesOrientation;
             });
+
+            // Перемешиваем картинки внутри категории на основе дня недели
+            const seed = getDayOfWeekSeed();
+            currentFilteredList = seededShuffle(filtered, seed);
 
             if (currentFilteredList.length === 0) {
                 const emptyMsg = document.createElement('div');
@@ -267,11 +300,9 @@
 
         function openImageByIndex(index) {
             currentIndex = index;
-            
             const modal = document.getElementById('imageModal');
             modal.style.display = 'flex';
             setTimeout(() => modal.classList.add('active'), 10);
-
             updateModalImage();
         }
 
@@ -286,19 +317,15 @@
             modalLoader.style.display = 'flex';
 
             const wallpaper = currentFilteredList[currentIndex];
-            
-            // 1. Мгновенно показываем эскиз в качестве основы в модалке
             const thumbToUse = wallpaper.thumb_path || wallpaper.path;
             if (thumbToUse) {
                 modalImg.src = BASE_DOMAIN + thumbToUse;
             }
 
-            // 2. Фоном начинаем загружать оригинальное изображение
             const originalUrl = BASE_DOMAIN + wallpaper.path;
             const fullImg = new Image();
             fullImg.src = originalUrl;
             fullImg.onload = () => {
-                // Когда оригинал скачался, подменяем источник у основного тега img
                 modalImg.src = originalUrl;
                 modalImg.classList.add('loaded');
                 modalLoader.style.opacity = '0';
