@@ -3,7 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ImageFast</title>
+    <title>ImageFast — Коллекция качественных обоев и картинок</title>
+    <meta id="meta-description" name="description" content="Бесплатные обои для рабочего стола и телефона в высоком разрешении. Огромная коллекция качественных картинок лесов, аниме, авто, космоса и пейзажей.">
+
+    <!-- Динамический тег Canonical для корректной индексации категорий -->
+    <link id="canonical-url" rel="canonical" href="https://yaaru18058.github.io/QuickImagesCatalog/">
 
     <!-- Yandex.Metrika counter -->
     <script src="yandex.js" async></script>
@@ -20,13 +24,13 @@
 
     <!-- Отдельная верхняя полоса для логотипа -->
     <div class="brand-banner">
-        <div class="brand-logo-center">ImageFast</div>
+        <div class="brand-logo-center" style="cursor: pointer;" onclick="goHome()">ImageFast</div>
     </div>
 
     <header class="main-header">
         <div class="header-top">
-            <h1 id="header-title" class="header-title">Коллекция изображений </h1>
-            <button id="header-back-btn" class="back-btn hidden-view" onclick="switchView('categories')">← Назад</button>
+            <h1 id="header-title" class="header-title">Коллекция изображений</h1>
+            <button id="header-back-btn" class="back-btn hidden-view" onclick="goHome()">← Назад</button>
         </div>
         
         <div class="filters" id="filters-container">
@@ -44,11 +48,14 @@
         </div>
 
         <div id="wallpapers-view" class="view-container hidden-view">
+            <!-- Блок описания категории -->
+            <div id="category-description" class="category-description-box" style="margin-bottom: 20px; line-height: 1.6; color: var(--text-gray, #ccc); font-size: 1.05rem; padding: 0 10px;"></div>
             <div id="wallpapers-grid" class="grid"></div>
         </div>
     </main>
 
-    <div id="imageModal" class="modal">
+    <!-- Модальное окно с микроразметкой Schema.org -->
+    <div id="imageModal" class="modal" itemscope itemtype="http://schema.org/ImageObject">
         <button class="back-btn modal-close" onclick="closeImage()">← Назад</button>
         
         <div id="modalLoader" class="modal-loader">
@@ -57,7 +64,8 @@
         </div>
 
         <!-- Главное изображение принимает эскиз и принудительные размеры оригинала -->
-        <img id="modalImg" src="" alt="Wallpaper">
+        <img id="modalImg" src="" alt="Wallpaper" itemprop="contentUrl">
+        <meta itemprop="caption" id="modalCaption" content="Красивые обои для ПК и смартфона">
         
         <div class="modal-nav">
             <button class="nav-circle-btn" onclick="prevImage()" title="Предыдущая">←</button>
@@ -67,6 +75,7 @@
 
     <script>
         const BASE_DOMAIN = "https://yaaru18058.github.io/QuickImagesCatalog/";
+        const DEFAULT_DESCRIPTION = "Бесплатные обои для рабочего стола и телефона в высоком разрешении. Огромная коллекция качественных картинок лесов, аниме, авто, космоса и пейзажей.";
         
         const categoryNameMap = {
             "nature": "Природа",
@@ -90,6 +99,30 @@
             "neon": "Неон",
             "pixel art": "Пиксель-арт",
             "imported": "Популярные"
+        };
+
+        const categoryDescriptions = {
+            "nature": "Красивые обои с природой на рабочий стол и телефон. Большая коллекция качественных картинок лесов, гор, рек и пейзажей в высоком разрешении.",
+            "anime": "Лучшие аниме обои и картинки для любителей японской анимации. Яркие и атмосферные заставки на экран смартфона или ПК.",
+            "cyberpunk": "Атмосферные обои в стиле киберпанк: футуристические города, неон, технологии и ночная эстетика для устройств.",
+            "minimalist": "Строгие и стильные минималистичные обои. Ничего лишнего — только чистые цвета и лаконичный дизайн для рабочего стола.",
+            "space": "Удивительные космические обои: звезды, галактики, туманности и планеты. Тайны Вселенной на заставках.",
+            "cars": "Крутые обои с автомобилями: спорткары, классика и суперкары в высоком качестве для истинных автолюбителей.",
+            "cityscape": "Обои с городскими пейзажами и ночными мегаполисами. Архитектура и огни больших городов на экране.",
+            "dark": "Темные и готические обои для любителей строгой эстетики и OLED-экранов. Стильные темные заставки.",
+            "fantasy": "Сказочные миры, магия и фантастические существа. Коллекция картинок в атмосфере фэнтези.",
+            "abstract": "Яркие и необычные абстрактные изображения, узоры и графические текстуры для оригинального оформления экрана.",
+            "gaming": "Игровые обои для геймеров: любимые персонажи, арты и кадры из популярных видеоигр.",
+            "mountains": "Величественные горные вершины, заснеженные склоны и альпийские пейзажи на заставки.",
+            "ocean": "Морские просторы, океанские волны, пляжи и подводный мир для любителей стихии воды.",
+            "animals": "Милые и дикие животные в высоком разрешении: качественные фотографии и арты зверей.",
+            "architecture": "Удивительные здания, мосты и памятники мировой архитектуры на рабочем столе.",
+            "retro": "Винтажные и ретро-обои в стиле прошлых десятилетий для создания особой атмосферы.",
+            "sci-fi": "Научная фантастика, футуризм, космические корабли и неизведанные миры.",
+            "sunset": "Красивейшие закаты и рассветы: краски неба, солнце и романтическая атмосфера.",
+            "neon": "Яркие неоновые подсветки, вывески и кибер-дизайн в темных тонах.",
+            "pixel art": "Пиксель-арт обои для ценителей ретро-гейминга и пиксельной графики.",
+            "imported": "Популярные и самые скачиваемые обои и заставки для телефонов и ПК."
         };
 
         let allWallpapers = [];
@@ -137,10 +170,34 @@
                 allWallpapers = await response.json();
                 
                 document.getElementById('loader').style.display = 'none';
-                renderCategories();
+
+                // Проверяем наличие категории в URL при первоначальной загрузке
+                const urlParams = new URLSearchParams(window.location.search);
+                const categoryParam = urlParams.get('category');
+
+                if (categoryParam) {
+                    selectCategory(categoryParam, false);
+                } else {
+                    renderCategories();
+                }
             } catch (e) {
                 console.error(e);
                 document.getElementById('loader').innerHTML = '<div class="error">Не удалось загрузить каталог. Проверьте соединение.</div>';
+            }
+        }
+
+        // Обработка кнопок Назад/Вперед в браузере
+        window.addEventListener('popstate', (event) => {
+            if (event.state && event.state.category) {
+                selectCategory(event.state.category, false);
+            } else {
+                switchView('categories', false);
+            }
+        });
+
+        function goHome() {
+            if (selectedCategory) {
+                switchView('categories', true);
             }
         }
 
@@ -163,7 +220,7 @@
             }
         }
 
-        function switchView(targetView) {
+        function switchView(targetView, pushState = true) {
             const catView = document.getElementById('categories-view');
             const wallView = document.getElementById('wallpapers-view');
 
@@ -182,6 +239,20 @@
                     document.getElementById('header-title').classList.remove('hidden-view');
                     document.getElementById('header-back-btn').classList.add('hidden-view');
                     document.getElementById('filters-container').style.display = 'flex';
+
+                    // Обновляем title, meta description, canonical и URL для главной
+                    document.title = "ImageFast — Коллекция качественных обоев и картинок";
+                    document.getElementById('meta-description').setAttribute('content', DEFAULT_DESCRIPTION);
+                    
+                    const canonicalTag = document.getElementById('canonical-url');
+                    if (canonicalTag) {
+                        canonicalTag.setAttribute('href', BASE_DOMAIN);
+                    }
+
+                    if (pushState) {
+                        const newUrl = window.location.pathname;
+                        history.pushState(null, '', newUrl);
+                    }
 
                     catView.classList.remove('hidden-view');
                     wallView.classList.add('hidden-view');
@@ -211,6 +282,15 @@
 
             document.getElementById('categories-view').classList.remove('hidden-view');
             document.getElementById('wallpapers-view').classList.add('hidden-view');
+            
+            document.title = "ImageFast — Коллекция качественных обоев и картинок";
+            document.getElementById('meta-description').setAttribute('content', DEFAULT_DESCRIPTION);
+            
+            const canonicalTag = document.getElementById('canonical-url');
+            if (canonicalTag) {
+                canonicalTag.setAttribute('href', BASE_DOMAIN);
+            }
+
             renderCategoriesContent();
         }
 
@@ -223,8 +303,9 @@
             grid.innerHTML = '';
 
             uniqueQueries.forEach(catQuery => {
-                const title = categoryNameMap[catQuery.toLowerCase()] || 
-                    (catQuery.charAt(0).toUpperCase() + catQuery.slice(1));
+                const catKey = catQuery.toLowerCase();
+                const title = categoryNameMap[catKey] || (catQuery.charAt(0).toUpperCase() + catQuery.slice(1));
+                const catDesc = categoryDescriptions[catKey] || `Обои и картинки из категории ${title}`;
 
                 const matchingItems = allWallpapers.filter(item => 
                     item.category && item.category.toLowerCase() === catQuery.toLowerCase() &&
@@ -241,9 +322,14 @@
 
                 const card = document.createElement('div');
                 card.className = 'card';
+                // Добавляем атрибуты Schema.org для категорий
+                card.setAttribute('itemscope', '');
+                card.setAttribute('itemtype', 'http://schema.org/ImageObject');
                 card.onclick = () => selectCategory(catQuery);
                 card.innerHTML = `
-                    <img src="${previewUrl}" alt="${title}" loading="lazy">
+                    <img src="${previewUrl}" alt="Категория ${title} — обои и заставки" itemprop="contentUrl" loading="lazy">
+                    <meta itemprop="name" content="${title}">
+                    <meta itemprop="description" content="${catDesc}">
                     <div class="card-overlay">
                         <div class="card-title">${title}</div>
                     </div>
@@ -252,14 +338,48 @@
             });
         }
 
-        function selectCategory(categoryQuery) {
+        function selectCategory(categoryQuery, pushState = true) {
             selectedCategory = categoryQuery;
-            switchView('wallpapers');
+            
+            const catKey = categoryQuery.toLowerCase();
+            const catTitle = categoryNameMap[catKey] || (catKey.charAt(0).toUpperCase() + catKey.slice(1));
+            const catDesc = categoryDescriptions[catKey] || DEFAULT_DESCRIPTION;
+            
+            // Обновляем тег <title> и <meta description>
+            document.title = `${catTitle} — Обои для рабочего стола и телефона | ImageFast`;
+            document.getElementById('meta-description').setAttribute('content', catDesc);
+
+            // Обновляем canonical для текущей категории
+            const canonicalTag = document.getElementById('canonical-url');
+            if (canonicalTag) {
+                canonicalTag.setAttribute('href', `${BASE_DOMAIN}?category=${encodeURIComponent(categoryQuery)}`);
+            }
+
+            // Обновляем URL без перезагрузки страницы
+            if (pushState) {
+                const newUrl = `${window.location.pathname}?category=${encodeURIComponent(categoryQuery)}`;
+                history.pushState({ category: categoryQuery }, '', newUrl);
+            }
+
+            switchView('wallpapers', false);
         }
 
         function renderWallpapersContent(categoryQuery) {
             const grid = document.getElementById('wallpapers-grid');
+            const descContainer = document.getElementById('category-description');
+            
             grid.innerHTML = '';
+
+            const catKey = categoryQuery.toLowerCase();
+            const catTitle = categoryNameMap[catKey] || (catKey.charAt(0).toUpperCase() + catKey.slice(1));
+
+            // Выводим SEO текстовое описание категории
+            if (categoryDescriptions[catKey]) {
+                descContainer.innerHTML = `<h2 style="font-size: 1.4rem; color: #fff; margin-bottom: 8px;">${catTitle}</h2><p>${categoryDescriptions[catKey]}</p>`;
+                descContainer.style.display = 'block';
+            } else {
+                descContainer.style.display = 'none';
+            }
 
             const filtered = allWallpapers.filter(item => {
                 const matchesCategory = item.category && item.category.toLowerCase() === categoryQuery.toLowerCase();
@@ -284,12 +404,18 @@
             currentFilteredList.forEach((wallpaper, index) => {
                 const pathToUse = wallpaper.thumb_path || wallpaper.path;
                 const imageUrl = BASE_DOMAIN + pathToUse;
+                const imgAlt = `Обои ${catTitle} #${index + 1} в высоком разрешении`;
 
                 const card = document.createElement('div');
                 card.className = 'card';
+                // Микроразметка Schema.org для карточек изображений
+                card.setAttribute('itemscope', '');
+                card.setAttribute('itemtype', 'http://schema.org/ImageObject');
                 card.onclick = () => openImageByIndex(index);
                 card.innerHTML = `
-                    <img src="${imageUrl}" alt="Wallpaper" loading="lazy">
+                    <img src="${imageUrl}" alt="${imgAlt}" itemprop="contentUrl" loading="lazy">
+                    <meta itemprop="name" content="${catTitle} #${index + 1}">
+                    <meta itemprop="description" content="${imgAlt}">
                 `;
                 grid.appendChild(card);
             });
@@ -308,6 +434,7 @@
             
             const modalImg = document.getElementById('modalImg');
             const modalLoader = document.getElementById('modalLoader');
+            const modalCaption = document.getElementById('modalCaption');
             
             modalImg.classList.remove('loaded');
             modalLoader.style.opacity = '1';
@@ -317,30 +444,33 @@
             const originalUrl = BASE_DOMAIN + wallpaper.path;
             const thumbToUse = wallpaper.thumb_path || wallpaper.path;
 
-            // Если в объекте каталога случайно уже есть сохраненные размеры, используем их, 
-            // иначе запрашиваем картинку в фоне для определения размеров оригинала в пикселях
+            const catKey = selectedCategory ? selectedCategory.toLowerCase() : '';
+            const catTitle = categoryNameMap[catKey] || 'Картинка';
+            const imgAltText = `${catTitle} — Качественные обои #${currentIndex + 1}`;
+            
+            modalImg.alt = imgAltText;
+            if (modalCaption) {
+                modalCaption.setAttribute('content', imgAltText);
+            }
+
             if (wallpaper.width && wallpaper.height) {
                 modalImg.width = wallpaper.width;
                 modalImg.height = wallpaper.height;
             } else {
-                // Предзагружаем оригинал «внутренне», чтобы узнать его размеры в пикселях
                 const probeImg = new Image();
                 probeImg.src = originalUrl;
                 probeImg.onload = () => {
                     wallpaper.width = probeImg.naturalWidth;
                     wallpaper.height = probeImg.naturalHeight;
-                    // Устанавливаем размер пикселей оригинала на элемент макета
                     modalImg.width = wallpaper.width;
                     modalImg.height = wallpaper.height;
                 };
             }
 
-            // Сначала выводим эскиз
             if (thumbToUse) {
                 modalImg.src = BASE_DOMAIN + thumbToUse;
             }
 
-            // Полная загрузка оригинала для замены
             const fullImg = new Image();
             fullImg.src = originalUrl;
             fullImg.onload = () => {
