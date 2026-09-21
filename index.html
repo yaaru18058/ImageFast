@@ -56,7 +56,7 @@
             <div></div>
         </div>
 
-        <!-- Главное изображение сразу принимает эскиз, а по onload подгружает оригинал -->
+        <!-- Главное изображение принимает эскиз и принудительные размеры оригинала -->
         <img id="modalImg" src="" alt="Wallpaper">
         
         <div class="modal-nav">
@@ -217,7 +217,6 @@
         function renderCategoriesContent() {
             const seed = getDayOfWeekSeed();
             
-            // Получаем уникальные категории БЕЗ перемешивания (порядок неизменен)
             const uniqueQueries = [...new Set(allWallpapers.map(item => item.category).filter(Boolean))];
 
             const grid = document.getElementById('categories-grid');
@@ -234,7 +233,6 @@
 
                 const listToPick = matchingItems.length > 0 ? matchingItems : allWallpapers.filter(item => item.category && item.category.toLowerCase() === catQuery.toLowerCase());
                 
-                // Перемешиваем картинки внутри категории на основе дня недели, чтобы обложка менялась
                 const shuffledItems = seededShuffle(listToPick, seed + catQuery.length);
                 const found = shuffledItems[0];
 
@@ -269,7 +267,6 @@
                 return matchesCategory && matchesOrientation;
             });
 
-            // Перемешиваем картинки внутри категории на основе дня недели
             const seed = getDayOfWeekSeed();
             currentFilteredList = seededShuffle(filtered, seed);
 
@@ -317,12 +314,33 @@
             modalLoader.style.display = 'flex';
 
             const wallpaper = currentFilteredList[currentIndex];
+            const originalUrl = BASE_DOMAIN + wallpaper.path;
             const thumbToUse = wallpaper.thumb_path || wallpaper.path;
+
+            // Если в объекте каталога случайно уже есть сохраненные размеры, используем их, 
+            // иначе запрашиваем картинку в фоне для определения размеров оригинала в пикселях
+            if (wallpaper.width && wallpaper.height) {
+                modalImg.width = wallpaper.width;
+                modalImg.height = wallpaper.height;
+            } else {
+                // Предзагружаем оригинал «внутренне», чтобы узнать его размеры в пикселях
+                const probeImg = new Image();
+                probeImg.src = originalUrl;
+                probeImg.onload = () => {
+                    wallpaper.width = probeImg.naturalWidth;
+                    wallpaper.height = probeImg.naturalHeight;
+                    // Устанавливаем размер пикселей оригинала на элемент макета
+                    modalImg.width = wallpaper.width;
+                    modalImg.height = wallpaper.height;
+                };
+            }
+
+            // Сначала выводим эскиз
             if (thumbToUse) {
                 modalImg.src = BASE_DOMAIN + thumbToUse;
             }
 
-            const originalUrl = BASE_DOMAIN + wallpaper.path;
+            // Полная загрузка оригинала для замены
             const fullImg = new Image();
             fullImg.src = originalUrl;
             fullImg.onload = () => {
@@ -356,6 +374,8 @@
             setTimeout(() => {
                 modal.style.display = 'none';
                 document.getElementById('modalImg').src = '';
+                document.getElementById('modalImg').removeAttribute('width');
+                document.getElementById('modalImg').removeAttribute('height');
                 document.getElementById('modalImg').classList.remove('loaded');
             }, 300);
         }
