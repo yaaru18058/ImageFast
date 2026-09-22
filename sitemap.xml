@@ -3,114 +3,114 @@
 
   <!-- Главная страница -->
   <url>
-    <loc>https://yaaru18058.github.io/QuickImagesCatalog/</loc>
+    <loc>https://imagefast.ru/</loc>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
 
   <!-- Категории -->
   <url>
-    <loc>https://yaaru18058.github.io/QuickImagesCatalog/?category=nature</loc>
+    <loc>https://imagefast.ru/?category=nature</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://yaaru18058.github.io/QuickImagesCatalog/?category=anime</loc>
+    <loc>https://imagefast.ru/?category=anime</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://yaaru18058.github.io/QuickImagesCatalog/?category=cyberpunk</loc>
+    <loc>https://imagefast.ru/?category=cyberpunk</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://yaaru18058.github.io/QuickImagesCatalog/?category=minimalist</loc>
+    <loc>https://imagefast.ru/?category=minimalist</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://yaaru18058.github.io/QuickImagesCatalog/?category=space</loc>
+    <loc>https://imagefast.ru/?category=space</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://yaaru18058.github.io/QuickImagesCatalog/?category=cars</loc>
+    <loc>https://imagefast.ru/?category=cars</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://yaaru18058.github.io/QuickImagesCatalog/?category=cityscape</loc>
+    <loc>https://imagefast.ru/?category=cityscape</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://yaaru18058.github.io/QuickImagesCatalog/?category=dark</loc>
+    <loc>https://imagefast.ru/?category=dark</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://yaaru18058.github.io/QuickImagesCatalog/?category=fantasy</loc>
+    <loc>https://imagefast.ru/?category=fantasy</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://yaaru18058.github.io/QuickImagesCatalog/?category=abstract</loc>
+    <loc>https://imagefast.ru/?category=abstract</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://yaaru18058.github.io/QuickImagesCatalog/?category=gaming</loc>
+    <loc>https://imagefast.ru/?category=gaming</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://yaaru18058.github.io/QuickImagesCatalog/?category=mountains</loc>
+    <loc>https://imagefast.ru/?category=mountains</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://yaaru18058.github.io/QuickImagesCatalog/?category=ocean</loc>
+    <loc>https://imagefast.ru/?category=ocean</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://yaaru18058.github.io/QuickImagesCatalog/?category=animals</loc>
+    <loc>https://imagefast.ru/?category=animals</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://yaaru18058.github.io/QuickImagesCatalog/?category=architecture</loc>
+    <loc>https://imagefast.ru/?category=architecture</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://yaaru18058.github.io/QuickImagesCatalog/?category=retro</loc>
+    <loc>https://imagefast.ru/?category=retro</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://yaaru18058.github.io/QuickImagesCatalog/?category=sci-fi</loc>
+    <loc>https://imagefast.ru/?category=sci-fi</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://yaaru18058.github.io/QuickImagesCatalog/?category=sunset</loc>
+    <loc>https://imagefast.ru/?category=sunset</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://yaaru18058.github.io/QuickImagesCatalog/?category=neon</loc>
+    <loc>https://imagefast.ru/?category=neon</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://yaaru18058.github.io/QuickImagesCatalog/?category=pixel%20art</loc>
+    <loc>https://imagefast.ru/?category=pixel%20art</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://yaaru18058.github.io/QuickImagesCatalog/?category=imported</loc>
+    <loc>https://imagefast.ru/?category=imported</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>

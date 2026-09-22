@@ -7,4 +7,4 @@ Allow: /*.jpeg
 Allow: /*.webp
 
 # Ссылка на карту сайта
-Sitemap: https://yaaru18058.github.io/QuickImagesCatalog/sitemap.xml
+Sitemap: https://imagefast.ru/sitemap.xml
