@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+Allow: /ImageFast_logo.png
+Allow: /*.png
+Allow: /*.jpg
+Allow: /*.jpeg
+Allow: /*.webp
+
+# Ссылка на карту сайта
+Sitemap: https://yaaru18058.github.io/QuickImagesCatalog/sitemap.xml
