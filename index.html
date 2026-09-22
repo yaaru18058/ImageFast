@@ -2,68 +2,62 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ImageFast — Коллекция качественных обоев и картинок</title>
-    <meta id="meta-description" name="description" content="Бесплатные обои для рабочего стола и телефона в высоком разрешении. Огромная коллекция качественных картинок лесов, аниме, авто, космоса и пейзажей.">
-
-    <!-- Динамический тег Canonical для корректной индексации категорий -->
-    <link id="canonical-url" rel="canonical" href="https://yaaru18058.github.io/QuickImagesCatalog/">
-
-    <!-- Yandex.Metrika counter -->
-    <script src="yandex.js" async></script>
-    <noscript><div><img src="https://mc.yandex.ru/watch/112737054" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
-    <!-- /Yandex.Metrika counter -->
 
     <link rel="icon" type="image/png" href="ImageFast_logo.png">
-    <!-- Подключаем выразительный шрифт для логотипа -->
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
-    <!-- Подключаем файл стилей -->
-    <link rel="stylesheet" href="style.css">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title></title>
+    <meta id="meta-description" name="description" content="">
+
+    <link id="canonical-url" rel="canonical" href="">
+
+    <script id="yandex-script" src="" async></script>
+    <noscript><div id="yandex-noscript"></div></noscript>
+
+    <link id="site-favicon" rel="icon" type="image/png" href="">
+    <link id="site-fonts" rel="stylesheet" href="">
+    <link id="site-styles" rel="stylesheet" href="">
 </head>
 <body>
 
-    <!-- Отдельная верхняя полоса для логотипа -->
     <div class="brand-banner">
-        <div class="brand-logo-center" style="cursor: pointer;" onclick="goHome()">ImageFast</div>
+        <div id="brand-logo" class="brand-logo-center" style="cursor: pointer;" onclick="goHome()"></div>
     </div>
 
     <header class="main-header">
         <div class="header-top">
-            <h1 id="header-title" class="header-title">Коллекция изображений</h1>
-            <button id="header-back-btn" class="back-btn hidden-view" onclick="goHome()">← Назад</button>
+            <h1 id="header-title" class="header-title"></h1>
+            <button id="header-back-btn" class="back-btn hidden-view" onclick="goHome()"></button>
         </div>
         
         <div class="filters" id="filters-container">
-            <button class="chip active" onclick="setOrientation(null)">Все</button>
-            <button class="chip" onclick="setOrientation('portrait')">Вертикальные</button>
-            <button class="chip" onclick="setOrientation('landscape')">Альбомные</button>
+            <button id="filter-btn-all" class="chip active" onclick="setOrientation(null)"></button>
+            <button id="filter-btn-portrait" class="chip" onclick="setOrientation('portrait')"></button>
+            <button id="filter-btn-landscape" class="chip" onclick="setOrientation('landscape')"></button>
         </div>
     </header>
 
     <main>
-        <div id="loader" class="loading">Загрузка каталога...</div>
+        <div id="loader" class="loading"></div>
 
         <div id="categories-view" class="view-container">
             <div id="categories-grid" class="grid"></div>
         </div>
 
         <div id="wallpapers-view" class="view-container hidden-view">
-            <!-- Блок описания категории -->
             <div id="category-description" class="category-description-box" style="margin-bottom: 20px; line-height: 1.6; color: var(--text-gray, #ccc); font-size: 1.05rem; padding: 0 10px;"></div>
             <div id="wallpapers-grid" class="grid"></div>
         </div>
     </main>
 
-    <!-- Модальное окно с микроразметкой Schema.org -->
     <div id="imageModal" class="modal" itemscope itemtype="http://schema.org/ImageObject">
-        <button class="back-btn modal-close" onclick="closeImage()">← Назад</button>
+        <button id="modal-close-btn" class="back-btn modal-close" onclick="closeImage()"></button>
         
         <div id="modalLoader" class="modal-loader">
             <div class="spinner"></div>
             <div></div>
         </div>
 
-        <!-- Главное изображение принимает эскиз и принудительные размеры оригинала -->
         <img id="modalImg" src="" alt="Wallpaper" itemprop="contentUrl">
         <meta itemprop="caption" id="modalCaption" content="Красивые обои для ПК и смартфона">
         
@@ -74,7 +68,9 @@
     </div>
 
     <script>
-        const BASE_DOMAIN = "https://yaaru18058.github.io/QuickImagesCatalog/";
+        let BASE_DOMAIN = "";
+        let CONFIG = {};
+
         const DEFAULT_DESCRIPTION = "Бесплатные обои для рабочего стола и телефона в высоком разрешении. Огромная коллекция качественных картинок лесов, аниме, авто, космоса и пейзажей.";
         
         const categoryNameMap = {
@@ -133,7 +129,6 @@
         let currentFilteredList = [];
         let currentIndex = 0;
 
-        // --- ФУНКЦИЯ РАНДОМА, ПРИВЯЗАННАЯ КО ДНЮ НЕДЕЛИ ---
         function getDayOfWeekSeed() {
             const now = new Date();
             const year = now.getFullYear();
@@ -161,17 +156,69 @@
             }
             return arr;
         }
-        // ----------------------------------------------------
+
+        function applyConfigUI() {
+            document.title = CONFIG.defaultTitle || "ImageFast";
+            document.getElementById('meta-description').setAttribute('content', CONFIG.defaultDescription || DEFAULT_DESCRIPTION);
+
+            document.getElementById('brand-logo').textContent = CONFIG.siteName || "ImageFast";
+            document.getElementById('header-title').textContent = CONFIG.headerTitle || "Коллекция изображений";
+            
+            const backText = CONFIG.backButtonText || "← Назад";
+            document.getElementById('header-back-btn').textContent = backText;
+            document.getElementById('modal-close-btn').textContent = backText;
+
+            document.getElementById('loader').textContent = CONFIG.loaderText || "Загрузка каталога...";
+
+            document.getElementById('filter-btn-all').textContent = CONFIG.filterAllText || "Все";
+            document.getElementById('filter-btn-portrait').textContent = CONFIG.filterPortraitText || "Вертикальные";
+            document.getElementById('filter-btn-landscape').textContent = CONFIG.filterLandscapeText || "Альбомные";
+
+            if (CONFIG.logoPath) {
+                document.getElementById('site-favicon').href = CONFIG.logoPath;
+            }
+            if (CONFIG.fontsUrl) {
+                document.getElementById('site-fonts').href = CONFIG.fontsUrl;
+            }
+            if (CONFIG.stylesUrl) {
+                document.getElementById('site-styles').href = CONFIG.stylesUrl;
+            }
+            if (CONFIG.yandexScriptSrc) {
+                document.getElementById('yandex-script').src = CONFIG.yandexScriptSrc;
+            }
+            if (CONFIG.yandexMetrikaId) {
+                const noscriptContainer = document.getElementById('yandex-noscript');
+                if (noscriptContainer) {
+                    noscriptContainer.innerHTML = `<div><img src="https://mc.yandex.ru/watch/${CONFIG.yandexMetrikaId}" style="position:absolute; left:-9999px;" alt="" /></div>`;
+                }
+            }
+        }
 
         async function init() {
             try {
-                const response = await fetch(BASE_DOMAIN + "catalog.json");
-                if (!response.ok) throw new Error("Ошибка загрузки сети");
+                const configResponse = await fetch("config.json");
+                if (!configResponse.ok) {
+                    throw new Error("Не удалось загрузить файл config.json");
+                }
+                CONFIG = await configResponse.json();
+
+                applyConfigUI();
+
+                BASE_DOMAIN = CONFIG.imagesCatalogUrl || "";
+                if (BASE_DOMAIN && !BASE_DOMAIN.endsWith('/')) {
+                    BASE_DOMAIN += '/';
+                }
+
+                const catalogFileName = CONFIG.catalogFileName || "catalog.json";
+                const response = await fetch(BASE_DOMAIN + catalogFileName);
+                if (!response.ok) {
+                    throw new Error(`Ошибка загрузки ${catalogFileName} (${response.status})`);
+                }
+                
                 allWallpapers = await response.json();
                 
                 document.getElementById('loader').style.display = 'none';
 
-                // Проверяем наличие категории в URL при первоначальной загрузке
                 const urlParams = new URLSearchParams(window.location.search);
                 const categoryParam = urlParams.get('category');
 
@@ -182,11 +229,10 @@
                 }
             } catch (e) {
                 console.error(e);
-                document.getElementById('loader').innerHTML = '<div class="error">Не удалось загрузить каталог. Проверьте соединение.</div>';
+                document.getElementById('loader').innerHTML = `<div class="error">Не удалось загрузить каталог.<br><em>${e.message}</em></div>`;
             }
         }
 
-        // Обработка кнопок Назад/Вперед в браузере
         window.addEventListener('popstate', (event) => {
             if (event.state && event.state.category) {
                 selectCategory(event.state.category, false);
@@ -204,11 +250,15 @@
         function setOrientation(orientation) {
             currentOrientation = orientation;
             
+            const btnAll = CONFIG.filterAllText || "Все";
+            const btnPortrait = CONFIG.filterPortraitText || "Вертикальные";
+            const btnLandscape = CONFIG.filterLandscapeText || "Альбомные";
+
             document.querySelectorAll('.filters .chip').forEach(btn => {
                 btn.classList.remove('active');
-                if ((orientation === null && btn.textContent === 'Все') ||
-                    (orientation === 'portrait' && btn.textContent === 'Вертикальные') ||
-                    (orientation === 'landscape' && btn.textContent === 'Альбомные')) {
+                if ((orientation === null && btn.textContent === btnAll) ||
+                    (orientation === 'portrait' && btn.textContent === btnPortrait) ||
+                    (orientation === 'landscape' && btn.textContent === btnLandscape)) {
                     btn.classList.add('active');
                 }
             });
@@ -240,9 +290,8 @@
                     document.getElementById('header-back-btn').classList.add('hidden-view');
                     document.getElementById('filters-container').style.display = 'flex';
 
-                    // Обновляем title, meta description, canonical и URL для главной
-                    document.title = "ImageFast — Коллекция качественных обоев и картинок";
-                    document.getElementById('meta-description').setAttribute('content', DEFAULT_DESCRIPTION);
+                    document.title = CONFIG.defaultTitle || "ImageFast";
+                    document.getElementById('meta-description').setAttribute('content', CONFIG.defaultDescription || DEFAULT_DESCRIPTION);
                     
                     const canonicalTag = document.getElementById('canonical-url');
                     if (canonicalTag) {
@@ -283,8 +332,8 @@
             document.getElementById('categories-view').classList.remove('hidden-view');
             document.getElementById('wallpapers-view').classList.add('hidden-view');
             
-            document.title = "ImageFast — Коллекция качественных обоев и картинок";
-            document.getElementById('meta-description').setAttribute('content', DEFAULT_DESCRIPTION);
+            document.title = CONFIG.defaultTitle || "ImageFast";
+            document.getElementById('meta-description').setAttribute('content', CONFIG.defaultDescription || DEFAULT_DESCRIPTION);
             
             const canonicalTag = document.getElementById('canonical-url');
             if (canonicalTag) {
@@ -322,7 +371,6 @@
 
                 const card = document.createElement('div');
                 card.className = 'card';
-                // Добавляем атрибуты Schema.org для категорий
                 card.setAttribute('itemscope', '');
                 card.setAttribute('itemtype', 'http://schema.org/ImageObject');
                 card.onclick = () => selectCategory(catQuery);
@@ -343,19 +391,17 @@
             
             const catKey = categoryQuery.toLowerCase();
             const catTitle = categoryNameMap[catKey] || (catKey.charAt(0).toUpperCase() + catKey.slice(1));
-            const catDesc = categoryDescriptions[catKey] || DEFAULT_DESCRIPTION;
+            const catDesc = categoryDescriptions[catKey] || (CONFIG.defaultDescription || DEFAULT_DESCRIPTION);
             
-            // Обновляем тег <title> и <meta description>
-            document.title = `${catTitle} — Обои для рабочего стола и телефона | ImageFast`;
+            const siteName = CONFIG.siteName || "ImageFast";
+            document.title = `${catTitle} — Обои для рабочего стола и телефона | ${siteName}`;
             document.getElementById('meta-description').setAttribute('content', catDesc);
 
-            // Обновляем canonical для текущей категории
             const canonicalTag = document.getElementById('canonical-url');
             if (canonicalTag) {
                 canonicalTag.setAttribute('href', `${BASE_DOMAIN}?category=${encodeURIComponent(categoryQuery)}`);
             }
 
-            // Обновляем URL без перезагрузки страницы
             if (pushState) {
                 const newUrl = `${window.location.pathname}?category=${encodeURIComponent(categoryQuery)}`;
                 history.pushState({ category: categoryQuery }, '', newUrl);
@@ -373,7 +419,6 @@
             const catKey = categoryQuery.toLowerCase();
             const catTitle = categoryNameMap[catKey] || (catKey.charAt(0).toUpperCase() + catKey.slice(1));
 
-            // Выводим SEO текстовое описание категории
             if (categoryDescriptions[catKey]) {
                 descContainer.innerHTML = `<h2 style="font-size: 1.4rem; color: #fff; margin-bottom: 8px;">${catTitle}</h2><p>${categoryDescriptions[catKey]}</p>`;
                 descContainer.style.display = 'block';
@@ -396,7 +441,7 @@
                 emptyMsg.style.textAlign = "center";
                 emptyMsg.style.color = "var(--text-gray)";
                 emptyMsg.style.marginTop = "40px";
-                emptyMsg.textContent = "В этой категории пока нет картинок";
+                emptyMsg.textContent = CONFIG.emptyCategoryMessage || "В этой категории пока нет картинок";
                 grid.appendChild(emptyMsg);
                 return;
             }
@@ -408,7 +453,6 @@
 
                 const card = document.createElement('div');
                 card.className = 'card';
-                // Микроразметка Schema.org для карточек изображений
                 card.setAttribute('itemscope', '');
                 card.setAttribute('itemtype', 'http://schema.org/ImageObject');
                 card.onclick = () => openImageByIndex(index);
