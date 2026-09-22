@@ -1,6 +1,7 @@
 User-agent: *
 Allow: /
-Allow: /ImageFast_logo.png
+Allow: /favicon.ico
+Allow: /*.ico
 Allow: /*.png
 Allow: /*.jpg
 Allow: /*.jpeg

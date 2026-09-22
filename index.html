@@ -3,7 +3,9 @@
 <head>
     <meta charset="UTF-8">
 
-    <link rel="icon" type="image/png" href="ImageFast_logo.png">
+    <!-- Статический фавикон для поисковых роботов (Яндекс, Google) -->
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <link rel="shortcut icon" type="image/x-icon" href="favicon.ico">
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title></title>
@@ -14,7 +16,6 @@
     <script id="yandex-script" src="" async></script>
     <noscript><div id="yandex-noscript"></div></noscript>
 
-    <link id="site-favicon" rel="icon" type="image/png" href="">
     <link id="site-fonts" rel="stylesheet" href="">
     <link id="site-styles" rel="stylesheet" href="">
 </head>
@@ -174,9 +175,6 @@
             document.getElementById('filter-btn-portrait').textContent = CONFIG.filterPortraitText || "Вертикальные";
             document.getElementById('filter-btn-landscape').textContent = CONFIG.filterLandscapeText || "Альбомные";
 
-            if (CONFIG.logoPath) {
-                document.getElementById('site-favicon').href = CONFIG.logoPath;
-            }
             if (CONFIG.fontsUrl) {
                 document.getElementById('site-fonts').href = CONFIG.fontsUrl;
             }
